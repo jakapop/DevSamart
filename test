@@ -1,0 +1,127 @@
+
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/themes/base/jquery-ui.css" type="text/css" media="all" />
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js" type="text/javascript"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/jquery-ui.min.js" type="text/javascript"></script>
+
+
+<script type="text/javascript">
+	
+	$.widget("ui.combobox", {
+            _create: function () {
+                var self = this;
+                var select = this.element.hide(),
+					    selected = select.children(":selected"),
+					    value = selected.val() ? selected.text() : "";
+                var input = $("<input style='height:25px;width:200px;'>")
+					    .insertAfter(select)
+					    .val(value)
+					    .autocomplete({
+					        delay: 0,
+					        minLength: 0,
+					        source: function (request, response) {
+					            var matcher = new RegExp($.ui.autocomplete.escapeRegex(request.term), "i");
+					            response(select.children("option").map(function () {
+					                var text = $(this).text();
+					                if (this.value && (!request.term || matcher.test(text)))
+					                    return {
+					                        label: text.replace(
+											    new RegExp(
+												    "(?![^&;]+;)(?!<[^<>]*)(" +
+												    $.ui.autocomplete.escapeRegex(request.term) +
+												    ")(?![^<>]*>)(?![^&;]+;)", "gi"
+											    ), "$1"),
+												//"<strong>$1</strong>"
+					                        value: text,
+					                        option: this
+					                    };
+					            }));
+					        },
+					        select: function (event, ui) {
+					            ui.item.option.selected = true;
+					            select.val(ui.item.option.value);
+					            alert('change');
+
+					            self._trigger("selected", event, {
+
+					                item: ui.item.option
+
+					            });
+					        },
+					        change: function (event, ui) {
+							alert('t');
+					            if (!ui.item) {
+					                var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex($(this).val()) + "$", "i"),
+									    valid = false;
+					                select.children("option").each(function () {
+					                    if (this.value.match(matcher)) {
+					                        this.selected = valid = true;
+					                        return false;
+					                    }
+					                });
+					                if (!valid) {
+					                    // remove invalid value, as it didn't match anything
+					                    $(this).val("");
+					                    select.val("");
+					                    return false;
+					                }
+					            }
+					        }
+					    })
+					    .addClass("ui-widget ui-widget-content ui-corner-left");
+
+                input.data("autocomplete")._renderItem = function (ul, item) {
+                    return $("<li></li>")
+						    .data("item.autocomplete", item)
+						    .append("<a>" + item.label + "</a>")
+						    .appendTo(ul);
+                };
+
+                //$("<a><b>v</b></a>")
+				$("<a><b>v</b></a>")
+					    .attr("tabIndex", -1)
+					    .attr("title", "Show All Items")
+					    .insertAfter(input)
+					    .button({
+					        icons: {
+					            primary: "ui-icon-triangle-1-s"
+					        },
+					        text: false
+					    })
+					    .removeClass("ui-corner-all")
+					    .addClass("ui-corner-right ui-button-icon")
+					    .click(function () {
+					        // close if already visible
+							alert('tt');
+					        if (input.autocomplete("widget").is(":visible")) {
+					            input.autocomplete("close");
+					            return;
+					        }
+
+					        // pass empty string as value to search for, displaying all results
+					        input.autocomplete("search", "");
+					        input.focus();
+					    });
+            }
+        });
+	
+</script>
+
+
+
+<?php
+print('<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />');
+print("<select name='customer_id' id='customer_id'>");
+print("<option value='1'>222</option>");
+print("<option value='1'>333</option>");
+print("<option value='1'>444</option>");
+print("<option value='1'>555</option>");
+print("</select>");
+?>
+<script type="text/javascript">
+	$("#customer_id").combobox();
+</script>
+
+
+
+
